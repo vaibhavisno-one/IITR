@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken"
 export const verifyJWT = asyncHandler(async(req,res,next)=>{
     const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
 
+    console.log("[JWT] verifyJWT called —", req.method, req.originalUrl, "| token present:", !!token)
+
     try {
         if (!token){
             throw new ApiError(401, "Unauthorized")
@@ -21,6 +23,7 @@ export const verifyJWT = asyncHandler(async(req,res,next)=>{
             throw new ApiError(401, "User not found")
         }
     
+        console.log("[JWT] TOKEN VERIFIED — user:", user?.email)
         req.user = user
         next()
     } catch (error) {

@@ -1,24 +1,60 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { projects } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { getProjectMilestones } from "@/lib/api";
+import { createSubmission } from "@/lib/api";
+import withAuth from "@/components/withAuth";
 
-export default function SubmitMilestone() {
+function SubmitMilestone() {
   const router = useRouter();
   const { milestoneId } = router.query;
+
+  const [milestone, setMilestone] = useState(null);
+  const [project, setProject] = useState(null);
   const [description, setDescription] = useState("");
   const [fileName, setFileName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  let milestone = null;
-  let project = null;
-  for (const p of projects) {
-    const m = p.milestones.find((ms) => ms.id === Number(milestoneId));
-    if (m) { milestone = m; project = p; break; }
+  // We don't have a direct "get milestone by id" endpoint,
+  // so we pull it from the URL — the backend createSubmission just needs milestoneId.
+  useEffect(() => {
+    if (!milestoneId) return;
+    // Set a minimal placeholder so the form can render
+    setMilestone({ _id: milestoneId, title: "Milestone" });
+    setProject({ _id: null, title: "Project" });
+    setFetchLoading(false);
+  }, [milestoneId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await createSubmission({
+        milestoneId,
+        description,
+        ...(fileName ? { fileName } : {}),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Submission failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetchLoading) {
+    return (
+      <main className="mx-auto max-w-7xl px-6 py-20 text-center">
+        <div className="animate-pulse text-muted">Loading…</div>
+      </main>
+    );
   }
-
-  const handleSubmit = (e) => { e.preventDefault(); setSubmitted(true); };
 
   if (!milestone) {
     return (
@@ -40,10 +76,22 @@ export default function SubmitMilestone() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold">Submission sent!</h1>
-          <p className="mt-3 text-muted">Your work for &quot;{milestone.title}&quot; is under review.</p>
+          <p className="mt-3 text-muted">
+            Your work for milestone <span className="font-medium text-foreground">&quot;{milestoneId}&quot;</span> is under review.
+          </p>
           <div className="mt-8 flex gap-4">
-            <Link href={`/projects/${project.id}`} className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">View Project</Link>
-            <Link href="/dashboard" className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">Dashboard</Link>
+            <Link
+              href="/dashboard"
+              className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/projects"
+              className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover"
+            >
+              Projects
+            </Link>
           </div>
         </main>
       </>
@@ -52,18 +100,24 @@ export default function SubmitMilestone() {
 
   return (
     <>
-      <Head><title>{`Submit — ${milestone.title} — GigChain`}</title></Head>
+      <Head><title>{`Submit Work — GigChain`}</title></Head>
       <main className="mx-auto max-w-2xl px-6 py-10">
         <nav className="mb-6 flex items-center gap-2 text-sm text-muted">
           <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
           <span>/</span>
-          <Link href={`/projects/${project.id}`} className="hover:text-foreground">{project.title}</Link>
-          <span>/</span>
-          <span className="text-foreground">Submit</span>
+          <span className="text-foreground">Submit Work</span>
         </nav>
 
         <h1 className="text-3xl font-bold tracking-tight">Submit Work</h1>
-        <p className="mt-2 text-muted">Milestone: <span className="font-medium text-foreground">{milestone.title}</span></p>
+        <p className="mt-2 text-muted">
+          Milestone ID: <span className="font-medium text-foreground">{milestoneId}</span>
+        </p>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-8 rounded-2xl border border-border bg-card p-8">
           <div className="mb-6">
@@ -72,23 +126,54 @@ export default function SubmitMilestone() {
               <svg className="mb-3 h-10 w-10 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p className="text-sm text-muted"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
-              <input type="file" onChange={(e) => e.target.files?.[0] && setFileName(e.target.files[0].name)} className="absolute inset-0 cursor-pointer opacity-0" />
+              <p className="text-sm text-muted">
+                <span className="font-semibold text-primary">Click to upload</span> or drag and drop
+              </p>
+              <input
+                type="file"
+                onChange={(e) => e.target.files?.[0] && setFileName(e.target.files[0].name)}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              />
             </div>
-            {fileName && <div className="mt-3 flex items-center gap-2 rounded-lg bg-success-subtle px-4 py-2 text-sm text-success">✓ {fileName}</div>}
+            {fileName && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-success-subtle px-4 py-2 text-sm text-success">
+                ✓ {fileName}
+              </div>
+            )}
           </div>
 
           <div className="mb-6">
             <label htmlFor="desc" className="mb-2 block text-sm font-medium">Description</label>
-            <textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={5} required placeholder="Describe the work completed…" className="w-full resize-none rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            <textarea
+              id="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={5}
+              required
+              placeholder="Describe the work completed…"
+              className="w-full resize-none rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
           </div>
 
           <div className="flex justify-end gap-3">
-            <Link href={`/projects/${project.id}`} className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">Cancel</Link>
-            <button type="submit" className="rounded-lg bg-primary px-8 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25">Submit Work</button>
+            <Link
+              href="/dashboard"
+              className="rounded-lg border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-primary px-8 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Submitting…" : "Submit Work"}
+            </button>
           </div>
         </form>
       </main>
     </>
   );
 }
+
+export default withAuth(SubmitMilestone);

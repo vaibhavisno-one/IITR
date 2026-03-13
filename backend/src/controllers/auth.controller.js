@@ -22,6 +22,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
+    console.log("[AUTH] REGISTER REQUEST RECEIVED", { email: req.body?.email, role: req.body?.role })
     const { fullName, username, email, password, role } = req.body
 
     if ([fullName, username, email, password].some((field) =>
@@ -59,6 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
+    console.log("[AUTH] LOGIN REQUEST RECEIVED", { email: req.body?.email })
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -83,8 +85,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
     }
+
+    console.log("[AUTH] LOGIN SUCCESS — tokens generated for", loggedInUser?.email)
 
     return res
         .status(200)
@@ -118,7 +123,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
     }
 
     return res
@@ -153,7 +159,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax"
         }
 
         const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id)

@@ -1,14 +1,42 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/router";
+import { loginUser } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Login attempted with: ${email}`);
+    setError("");
+    setLoading(true);
+
+    console.log("[Login] Sending login request", { email });
+
+    try {
+      const data = await loginUser({ email, password });
+      console.log("[Login] Login response", data);
+
+      // Backend returns data inside a `data` wrapper — adapt to your API shape
+      const { user, accessToken, refreshToken } =
+        data.data || data;
+
+      login(user, accessToken, refreshToken);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("[Login] Login failed:", err.message);
+      setError(err.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,6 +59,13 @@ export default function Login() {
             onSubmit={handleSubmit}
             className="rounded-2xl border border-border bg-card p-8"
           >
+            {/* Error banner */}
+            {error && (
+              <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-5">
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-foreground">
@@ -70,9 +105,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+              disabled={loading}
+              className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Log in
+              {loading ? "Logging in…" : "Log in"}
             </button>
 
             {/* Divider */}

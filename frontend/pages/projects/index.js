@@ -1,17 +1,39 @@
 import Head from "next/head";
-import { useState } from "react";
-import { projects } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { getProjects } from "@/lib/api";
 import ProjectCard from "@/components/ProjectCard";
+import withAuth from "@/components/withAuth";
 
 const statuses = ["all", "active", "pending", "completed"];
 
-export default function ProjectsPage() {
+function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse rounded-xl bg-surface ${className}`} />;
+}
+
+function ProjectsPage() {
+  const [allProjects, setAllProjects] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filtered = projects.filter((p) => {
+  useEffect(() => {
+    getProjects()
+      .then((res) => {
+        const list = res?.data || res || [];
+        setAllProjects(Array.isArray(list) ? list : []);
+      })
+      .catch((err) => setError(err.message || "Failed to load projects."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = allProjects.filter((p) => {
     const matchesStatus = activeFilter === "all" || p.status === activeFilter;
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) || p.employer.toLowerCase().includes(search.toLowerCase());
+    const title = p.title || "";
+    const employer = p.employer?.name || p.employerName || p.employer || "";
+    const matchesSearch =
+      title.toLowerCase().includes(search.toLowerCase()) ||
+      employer.toLowerCase().includes(search.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -68,11 +90,24 @@ export default function ProjectsPage() {
           </div>
         </div>
 
+        {/* Error */}
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
         {/* Results */}
-        {filtered.length > 0 ? (
+        {loading ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-52" />
+            ))}
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project._id || project.id} project={project} />
             ))}
           </div>
         ) : (
@@ -88,3 +123,5 @@ export default function ProjectsPage() {
     </>
   );
 }
+
+export default withAuth(ProjectsPage);
