@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { logoutUser } from "@/lib/api";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -12,6 +14,18 @@ const navLinks = [
 export default function Navbar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // ignore backend errors on logout
+    } finally {
+      logout();
+      router.push("/");
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl">
@@ -48,18 +62,34 @@ export default function Navbar() {
 
         {/* Auth buttons */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
-          >
-            Sign up
-          </Link>
+          {user ? (
+            <>
+              <span className="text-sm font-medium text-muted">
+                {user.name || user.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-surface-hover"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -100,20 +130,31 @@ export default function Navbar() {
               );
             })}
             <hr className="my-2 border-border" />
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted hover:text-foreground"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-hover"
-            >
-              Sign up
-            </Link>
+            {user ? (
+              <button
+                onClick={() => { setMobileOpen(false); handleLogout(); }}
+                className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-hover"
+              >
+                Log out
+              </button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted hover:text-foreground"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-hover"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

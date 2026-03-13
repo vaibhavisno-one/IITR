@@ -32,7 +32,7 @@ export default function MilestoneCard({ milestone, index }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h4 className="font-semibold text-foreground">{milestone.title}</h4>
-            <p className="mt-1 text-sm text-muted">Due: {milestone.dueDate}</p>
+            <p className="mt-1 text-sm text-muted">Due: {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : "TBD"}</p>
           </div>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold capitalize ${config.bg} ${config.text}`}
@@ -45,7 +45,7 @@ export default function MilestoneCard({ milestone, index }) {
         {milestone.status === "pending" && (
           <div className="mt-4">
             <Link
-              href={`/submit/${milestone.id}`}
+              href={`/submit/${milestone._id || milestone.id}`}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

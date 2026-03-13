@@ -5,7 +5,13 @@ import cookieParser from "cookie-parser"
 const app = express()
 
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    // IMPORTANT: origin "*" + credentials:true is banned by browsers.
+    // Always use an explicit origin or a function allowlist.
+    origin: function (origin, callback) {
+        const allowed = ["http://localhost:3000", process.env.CORS_ORIGIN].filter(Boolean)
+        if (!origin || allowed.includes(origin)) return callback(null, true)
+        callback(new Error("CORS: origin not allowed — " + origin))
+    },
     credentials: true
 }))
 
@@ -35,7 +41,7 @@ app.use("/api/pfi", pfiRoutes)
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500
     const message = err.message || "Internal Server Error"
-    
+
     res.status(statusCode).json({
         success: false,
         statusCode,

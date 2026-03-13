@@ -1,16 +1,43 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/router";
+import { registerUser } from "@/lib/api";
 
 export default function Register() {
   const [role, setRole] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Registration attempted — Role: ${role}, Name: ${name}, Email: ${email}`);
+    if (!role) return;
+    setError("");
+    setLoading(true);
+
+    // Auto-generate username from name (lowercase, spaces→underscores) + random suffix
+    const autoUsername =
+      name.trim().toLowerCase().replace(/\s+/g, "_") +
+      "_" +
+      Math.floor(Math.random() * 9000 + 1000);
+
+    console.log("[Register] Sending registration request", { email, role, username: autoUsername });
+
+    try {
+      await registerUser({ fullName: name, username: autoUsername, email, password, role });
+      console.log("[Register] Registration successful — redirecting to login");
+      router.push("/login?registered=1");
+    } catch (err) {
+      console.error("[Register] Registration failed:", err.message);
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,6 +57,13 @@ export default function Register() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8">
+            {/* Error banner */}
+            {error && (
+              <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
             {/* Role selection */}
             <div className="mb-6">
               <label className="mb-3 block text-sm font-medium text-foreground">I want to…</label>
@@ -47,7 +81,7 @@ export default function Register() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   Hire talent
-                  <span className="text-xs font-normal text-muted">Post projects & milestones</span>
+                  <span className="text-xs font-normal text-muted">Post projects &amp; milestones</span>
                 </button>
                 <button
                   type="button"
@@ -62,7 +96,7 @@ export default function Register() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                   </svg>
                   Find work
-                  <span className="text-xs font-normal text-muted">Browse & deliver projects</span>
+                  <span className="text-xs font-normal text-muted">Browse &amp; deliver projects</span>
                 </button>
               </div>
             </div>
@@ -116,10 +150,10 @@ export default function Register() {
 
             <button
               type="submit"
-              disabled={!role}
+              disabled={!role || loading}
               className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Create account
+              {loading ? "Creating account…" : "Create account"}
             </button>
 
             <p className="mt-4 text-center text-xs text-muted">

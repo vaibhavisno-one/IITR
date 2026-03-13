@@ -1,7 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { projects } from "@/data/mockData";
+import { useEffect, useState } from "react";
+import { getProjectById, getProjectMilestones } from "@/lib/api";
 import MilestoneCard from "@/components/MilestoneCard";
 
 const statusStyles = {
@@ -10,16 +11,70 @@ const statusStyles = {
   pending: "bg-warning-subtle text-warning",
 };
 
+function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse rounded-lg bg-surface ${className}`} />;
+}
+
 export default function ProjectDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const project = projects.find((p) => p.id === Number(id));
 
-  if (!project) {
+  const [project, setProject] = useState(null);
+  const [milestones, setMilestones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchData() {
+      try {
+        const [projectRes, milestonesRes] = await Promise.allSettled([
+          getProjectById(id),
+          getProjectMilestones(id),
+        ]);
+
+        if (projectRes.status === "fulfilled") {
+          setProject(projectRes.value?.data || projectRes.value);
+        } else {
+          setError(projectRes.reason?.message || "Project not found.");
+        }
+
+        if (milestonesRes.status === "fulfilled") {
+          const list = milestonesRes.value?.data || milestonesRes.value || [];
+          setMilestones(Array.isArray(list) ? list : []);
+        }
+      } catch (err) {
+        setError(err.message || "Failed to load project.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-6 py-10">
+        <Skeleton className="mb-6 h-5 w-32" />
+        <div className="grid gap-10 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-40" />
+          </div>
+          <Skeleton className="h-64" />
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !project) {
     return (
       <main className="mx-auto max-w-7xl px-6 py-20 text-center">
         <h1 className="text-2xl font-bold">Project not found</h1>
-        <p className="mt-2 text-muted">The project you&apos;re looking for doesn&apos;t exist.</p>
+        <p className="mt-2 text-muted">{error || "The project you're looking for doesn't exist."}</p>
         <Link href="/projects" className="mt-6 inline-block text-primary hover:text-primary-hover">
           ← Back to projects
         </Link>
@@ -27,8 +82,14 @@ export default function ProjectDetail() {
     );
   }
 
-  const completedCount = project.milestones.filter((m) => m.status === "completed").length;
-  const progress = Math.round((completedCount / project.milestones.length) * 100);
+  const completedCount = milestones.filter((m) => m.status === "completed").length;
+  const progress = milestones.length
+    ? Math.round((completedCount / milestones.length) * 100)
+    : 0;
+
+  // Support both populated object and plain string for employer
+  const employerName =
+    project.employer?.name || project.employerName || project.employer || "—";
 
   return (
     <>
@@ -69,14 +130,24 @@ export default function ProjectDetail() {
               <h2 className="mb-6 text-xl font-semibold">
                 Milestones{" "}
                 <span className="text-sm font-normal text-muted">
-                  ({completedCount}/{project.milestones.length} completed)
+                  ({completedCount}/{milestones.length} completed)
                 </span>
               </h2>
-              <div>
-                {project.milestones.map((milestone, index) => (
-                  <MilestoneCard key={milestone.id} milestone={milestone} index={index} />
-                ))}
-              </div>
+              {milestones.length > 0 ? (
+                <div>
+                  {milestones.map((milestone, index) => (
+                    <MilestoneCard
+                      key={milestone._id || milestone.id}
+                      milestone={milestone}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl border border-border bg-card py-10 text-center text-sm text-muted">
+                  No milestones created yet.
+                </p>
+              )}
             </div>
           </div>
 
@@ -89,11 +160,13 @@ export default function ProjectDetail() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-xs font-medium uppercase tracking-wider text-muted">Employer</dt>
-                    <dd className="mt-1 text-sm font-medium text-foreground">{project.employer}</dd>
+                    <dd className="mt-1 text-sm font-medium text-foreground">{employerName}</dd>
                   </div>
                   <div>
                     <dt className="text-xs font-medium uppercase tracking-wider text-muted">Budget</dt>
-                    <dd className="mt-1 text-sm font-bold text-foreground">${project.budget.toLocaleString()}</dd>
+                    <dd className="mt-1 text-sm font-bold text-foreground">
+                      ${(project.budget || 0).toLocaleString()}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-xs font-medium uppercase tracking-wider text-muted">Progress</dt>
@@ -101,7 +174,7 @@ export default function ProjectDetail() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted">{progress}% complete</span>
                         <span className="text-xs text-muted">
-                          {completedCount}/{project.milestones.length}
+                          {completedCount}/{milestones.length}
                         </span>
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-surface">
@@ -116,13 +189,13 @@ export default function ProjectDetail() {
                     <dt className="text-xs font-medium uppercase tracking-wider text-muted">Milestones</dt>
                     <dd className="mt-2 flex gap-2">
                       <span className="rounded-md bg-success-subtle px-2 py-1 text-xs font-medium text-success">
-                        {project.milestones.filter((m) => m.status === "completed").length} done
+                        {milestones.filter((m) => m.status === "completed").length} done
                       </span>
                       <span className="rounded-md bg-primary-subtle px-2 py-1 text-xs font-medium text-primary-hover">
-                        {project.milestones.filter((m) => m.status === "submitted").length} submitted
+                        {milestones.filter((m) => m.status === "submitted").length} submitted
                       </span>
                       <span className="rounded-md bg-warning-subtle px-2 py-1 text-xs font-medium text-warning">
-                        {project.milestones.filter((m) => m.status === "pending").length} pending
+                        {milestones.filter((m) => m.status === "pending").length} pending
                       </span>
                     </dd>
                   </div>
