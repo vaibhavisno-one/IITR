@@ -6,6 +6,8 @@ dotenv.config({
     path: './.env'
 })
 
+console.log("Groq API key loaded:", !!process.env.GROQ_API_KEY)
+
 connectDB()
 .then(() => {
     app.listen(process.env.PORT || 8000, () => {

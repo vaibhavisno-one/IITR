@@ -41,24 +41,20 @@ const createProject = asyncHandler(async (req, res) => {
 
     // Automatically Generate Milestones using AI
     let createdMilestones = [];
+    
     try {
-        const aiMilestones = await aiService.generateMilestones({
-            title: project.title,
-            description: project.description,
-            budget: project.budget,
-            deadline: project.deadline
-        });
-
-        if (aiMilestones && aiMilestones.length > 0) {
+        const aiMilestones = await aiService.generateMilestones(project);
+        
+        if (aiMilestones && Array.isArray(aiMilestones) && aiMilestones.length > 0) {
             let currentDate = new Date();
             const milestonesToCreate = aiMilestones.map((m, index) => {
-                const amount = Math.floor((m.percentageBudget / 100) * project.budget);
-                currentDate = new Date(currentDate.getTime() + m.days * 24 * 60 * 60 * 1000);
+                const amount = Math.floor(project.budget * (m.percentageBudget / 100));
+                currentDate = new Date(currentDate.getTime() + (m.days || 7) * 24 * 60 * 60 * 1000);
                 
                 return {
                     project: project._id,
                     title: m.title,
-                    description: m.description,
+                    description: m.description || m.title,
                     amount: amount,
                     deadline: new Date(currentDate),
                     order: index,
@@ -67,8 +63,8 @@ const createProject = asyncHandler(async (req, res) => {
             });
             createdMilestones = await Milestone.insertMany(milestonesToCreate);
         }
-    } catch (err) {
-        console.error("AI Milestone generation failed during auto-creation:", err);
+    } catch (error) {
+        console.error("Unexpected error during milestone generation routing:", error);
     }
 
     const responsePayload = {
@@ -310,12 +306,7 @@ const generateMilestones = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Milestones already generated for this project");
     }
 
-    const aiMilestones = await aiService.generateMilestones({
-        title: project.title,
-        description: project.description,
-        budget: project.budget,
-        deadline: project.deadline
-    });
+    const aiMilestones = await aiService.generateMilestones(project);
 
     if (!aiMilestones || aiMilestones.length === 0) {
         throw new ApiError(500, "Failed to generate milestones via AI");
@@ -323,13 +314,13 @@ const generateMilestones = asyncHandler(async (req, res) => {
 
     let currentDate = new Date();
     const milestonesToCreate = aiMilestones.map((m, index) => {
-        const amount = Math.floor((m.percentageBudget / 100) * project.budget);
-        currentDate = new Date(currentDate.getTime() + m.days * 24 * 60 * 60 * 1000);
+        const amount = Math.floor(project.budget * (m.percentageBudget / 100));
+        currentDate = new Date(currentDate.getTime() + (m.days || 7) * 24 * 60 * 60 * 1000);
         
         return {
             project: project._id,
             title: m.title,
-            description: m.description,
+            description: m.description || m.title,
             amount: amount,
             deadline: new Date(currentDate),
             order: index,

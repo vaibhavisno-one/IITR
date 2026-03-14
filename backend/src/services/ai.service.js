@@ -1,78 +1,79 @@
-import OpenAI from 'openai';
+import Groq from "groq-sdk";
 
-let openai = null;
-if (process.env.OPENAI_API_KEY) {
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-} else if (process.env.GROK_API_KEY) {
-    // GROK has OpenAI-compatible endpoints
-    openai = new OpenAI({ 
-        apiKey: process.env.GROK_API_KEY,
-        baseURL: "https://api.x.ai/v1"
-    });
+export const generateMilestones = async (project) => {
+    const fallbackMilestones = [
+        { title: "Project Setup", description: "Initial setup, framework installation, and basic configuration.", percentageBudget: 20, estimatedDays: 3, days: 3 },
+        { title: "Core Development", description: "Implementation of the primary logic, routing, and integrated database models.", percentageBudget: 50, estimatedDays: 10, days: 10 },
+        { title: "Testing and Deployment", description: "Writing unit tests, performing QA checks, and final server deployment.", percentageBudget: 30, estimatedDays: 4, days: 4 }
+    ];
+
+    try {
+        if (!process.env.GROQ_API_KEY) {
+            console.warn("No GROQ API key configured. Using fallback milestones.");
+            return fallbackMilestones;
+        }
+
+        const groq = new Groq({
+            apiKey: process.env.GROQ_API_KEY
+        });
+
+        const prompt = `You are a technical project manager. Generate development milestones for this project.
+
+Write natural language milestones where each milestone represents a real engineering step including development, integration, and testing tasks.
+
+Project Title: ${project.title}
+Project Description: ${project.description}
+Budget: ${project.budget}
+Deadline: ${project.deadline}
+
+Return strictly valid JSON containing an array of milestones.
+Each milestone must contain exactly these keys:
+{
+  "title": "Milestone title",
+  "description": "Detailed natural language explanation",
+  "percentageBudget": number,
+  "estimatedDays": number
 }
 
-const getAIResponse = async (prompt, systemPrompt) => {
-    if (!openai) return null;
-    try {
-        const response = await openai.chat.completions.create({
-            model: process.env.GROK_API_KEY ? "grok-preview" : "gpt-3.5-turbo",
+The sum of percentageBudget across all milestones must be exactly 100.
+Do not wrap in markdown or any other text. Output exactly the raw JSON array. Example:
+[
+  {
+    "title": "Backend API Development",
+    "description": "Design and implement the backend API endpoints, database schema, and authentication system required for the project.",
+    "percentageBudget": 30,
+    "estimatedDays": 3
+  }
+]`;
+
+        const completion = await groq.chat.completions.create({
             messages: [
-                { role: "system", content: systemPrompt },
+                { role: "system", content: "You are a technical project manager. Output only valid JSON." },
                 { role: "user", content: prompt }
             ],
-            response_format: { type: "json_object" }
+            model: "mixtral-8x7b-32768",
+            temperature: 0.2
         });
-        return JSON.parse(response.choices[0].message.content);
+
+        const responseContent = completion.choices[0]?.message?.content || "";
+        const jsonMatch = responseContent.match(/\[[\s\S]*\]/);
+        
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // Ensure compatibility with existing controller by copying estimatedDays to days
+                return parsed.map(m => ({
+                    ...m,
+                    days: m.estimatedDays || m.days || 7
+                }));
+            }
+        }
+        
+        throw new Error("Invalid JSON structure from AI. Check the response format.");
     } catch (error) {
-        console.error("AI Service Error:", error);
-        return null;
+        console.error("AI Generation Error:", error.message);
+        return fallbackMilestones;
     }
 };
 
-const generateMilestones = async (projectDetails) => {
-    const { title, description, budget, deadline } = projectDetails;
-    
-    const systemPrompt = "You are an AI assistant that breaks down software projects into development milestones. You must output JSON containing an array of milestones under the key 'milestones'. Each milestone object must contain strictly these keys: 'title' (string), 'description' (string), 'percentageBudget' (number, sum of all must be 100), and 'days' (number of days to complete).";
-    const prompt = `Project Title: ${title}\nDescription: ${description}\nTotal Budget: ${budget}\nDeadline: ${deadline}`;
-
-    const apiResult = await getAIResponse(prompt, systemPrompt);
-    
-    if (apiResult && apiResult.milestones && Array.isArray(apiResult.milestones)) {
-        return apiResult.milestones;
-    }
-
-    // Robust JSON Mock Fallback if no API key or failed parse
-    return [
-        { title: "Planning & Setup", description: "Initial setup, repo creation, and environment configuration.", percentageBudget: 20, days: 3 },
-        { title: "Core Development", description: "Implementation of primary logic and features.", percentageBudget: 50, days: 10 },
-        { title: "Testing & Deployment", description: "QA testing, bug fixing, and final deployment.", percentageBudget: 30, days: 4 }
-    ];
-};
-
-const evaluateSubmission = async (submissionContent) => {
-    const systemPrompt = "You are an AI code reviewer evaluating milestone submissions. You must output strictly JSON. The object must contain these keys: 'score' (number between 0 and 100), 'completed' (boolean indicating if it meets the core requirements), and 'feedback' (string detailing the code quality and correctness).";
-    const prompt = `Evaluate the following submission to determine if the milestone is fully completed.\nSubmission Repo/Notes: ${submissionContent}`;
-
-    const apiResult = await getAIResponse(prompt, systemPrompt);
-    
-    if (apiResult && typeof apiResult.score === 'number') {
-        return {
-            score: apiResult.score,
-            completed: apiResult.completed,
-            feedback: apiResult.feedback
-        };
-    }
-
-    // Mock Fallback
-    const mockScore = Math.floor(Math.random() * 30) + 70;
-    return {
-        score: mockScore,
-        completed: mockScore >= 75,
-        feedback: "This is a mock AI evaluation. The structured code looks good. Consider improving test coverage."
-    };
-};
-
-export default {
-    generateMilestones,
-    evaluateSubmission
-};
+export default { generateMilestones };

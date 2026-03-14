@@ -5,7 +5,8 @@ import { Submission } from "../models/submission.model.js";
 import { Milestone } from "../models/milestone.model.js";
 import { Project } from "../models/project.model.js";
 import { SubmissionStatus, MilestoneStatus, PaymentStatus } from "../../constants.js";
-import aiService from "../services/ai.service.js";
+import evaluationService from "../services/evaluationAI.service.js";
+import { fetchRepositorySummary } from "../services/github.service.js";
 import pfiService from "../services/pfi.service.js";
 import { Wallet } from "../models/wallet.model.js";
 import { Payment } from "../models/payment.model.js";
@@ -27,7 +28,16 @@ const createSubmission = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You are not authorized to submit work for this milestone")
     }
 
-    const aiEvaluation = await aiService.evaluateSubmission(content)
+    if (!repoLink) {
+        throw new ApiError(400, "A valid GitHub repository link is required for evaluation.")
+    }
+
+    const repoDetails = await fetchRepositorySummary(repoLink);
+    if (!repoDetails.isValid) {
+        throw new ApiError(400, `Repository Validation Failed: ${repoDetails.reason}`)
+    }
+
+    const aiEvaluation = await evaluationService.evaluateSubmission(repoDetails.summary, milestone.title, milestone.description)
 
     const isCompleted = aiEvaluation.completed;
     const finalSubmissionStatus = isCompleted ? SubmissionStatus.APPROVED : SubmissionStatus.REJECTED;
