@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Payment } from "../models/payment.model.js";
 import { Milestone } from "../models/milestone.model.js";
+import { Wallet } from "../models/wallet.model.js";
 import { PaymentStatus } from "../../constants.js";
 
 const createEscrow = asyncHandler(async (req, res) => {
@@ -144,9 +145,50 @@ const getPaymentHistory = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, payments, "Payment history fetched successfully"))
 })
 
+// ─── WALLET / ESCROW ─────────────────────────────────────────────────────────
+
+const getWalletBalance = asyncHandler(async (req, res) => {
+    let wallet = await Wallet.findOne({ user: req.user._id });
+    if (!wallet) {
+        wallet = await Wallet.create({ user: req.user._id, balance: 0 });
+    }
+    return res.status(200).json(new ApiResponse(200, wallet, "Wallet balance fetched"));
+});
+
+const depositFunds = asyncHandler(async (req, res) => {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+        throw new ApiError(400, "Valid amount is required");
+    }
+
+    let wallet = await Wallet.findOne({ user: req.user._id });
+    if (!wallet) {
+        wallet = await Wallet.create({ user: req.user._id, balance: amount });
+    } else {
+        wallet.balance += Number(amount);
+        await wallet.save();
+    }
+
+    return res.status(200).json(new ApiResponse(200, wallet, "Funds deposited successfully"));
+});
+
+const getEscrowSummary = asyncHandler(async (req, res) => {
+    const payments = await Payment.find({
+        employer: req.user._id,
+        status: PaymentStatus.ESCROW
+    });
+
+    const lockedAmount = payments.reduce((acc, p) => acc + p.amount, 0);
+
+    return res.status(200).json(new ApiResponse(200, { lockedAmount }, "Escrow summary fetched"));
+});
+
 export default {
     createEscrow,
     releasePayment,
     refundPayment,
-    getPaymentHistory
+    getPaymentHistory,
+    getWalletBalance,
+    depositFunds,
+    getEscrowSummary
 }

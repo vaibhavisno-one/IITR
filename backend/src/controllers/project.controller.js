@@ -149,6 +149,18 @@ const assignFreelancer = asyncHandler(async (req, res) => {
 
     project.freelancer = freelancerId
     project.status = ProjectStatus.IN_PROGRESS
+    
+    // Mark the accepted application, reject the rest
+    if (project.applicants && project.applicants.length > 0) {
+        project.applicants.forEach(app => {
+            if (app.freelancer.toString() === freelancerId) {
+                app.status = "accepted";
+            } else {
+                app.status = "rejected";
+            }
+        });
+    }
+    
     await project.save()
 
     const updatedProject = await Project.findById(id)
@@ -160,11 +172,72 @@ const assignFreelancer = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, updatedProject, "Freelancer assigned successfully"))
 })
 
+const applyForProject = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (req.user.role !== "freelancer") {
+        throw new ApiError(403, "Only freelancers can apply for projects");
+    }
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+        throw new ApiError(404, "Project not found");
+    }
+
+    if (project.status !== ProjectStatus.OPEN) {
+        throw new ApiError(400, "Project is no longer open for applications");
+    }
+
+    const alreadyApplied = project.applicants?.some(
+        app => app.freelancer.toString() === req.user._id.toString()
+    );
+
+    if (alreadyApplied) {
+        throw new ApiError(400, "You have already applied for this project");
+    }
+
+    if (!project.applicants) {
+        project.applicants = [];
+    }
+
+    project.applicants.push({
+        freelancer: req.user._id,
+        message: message || ""
+    });
+
+    await project.save();
+
+    return res.status(200).json(new ApiResponse(200, {}, "Application submitted successfully"));
+});
+
+const getProjectApplicants = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const project = await Project.findById(id).populate({
+        path: 'applicants.freelancer',
+        select: 'username fullName email skills bio'
+    });
+
+    if (!project) {
+        throw new ApiError(404, "Project not found");
+    }
+
+    if (project.employer.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "Only the employer can view applicants");
+    }
+
+    return res.status(200).json(new ApiResponse(200, project.applicants || [], "Applicants fetched successfully"));
+});
+
 export default {
     createProject,
     getProjects,
     getProjectById,
     updateProject,
     deleteProject,
-    assignFreelancer
+    assignFreelancer,
+    applyForProject,
+    getProjectApplicants
 }

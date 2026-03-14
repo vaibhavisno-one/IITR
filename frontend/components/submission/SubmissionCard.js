@@ -22,6 +22,26 @@ export default function SubmissionCard({ submission }) {
         </span>
       </div>
 
+      {/* AI Review data */}
+      {(submission.aiScore != null || submission.aiVerdict) && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg bg-surface px-4 py-2.5">
+          {submission.aiScore != null && (
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted">AI Score:</span>
+              <span className={`font-bold ${submission.aiScore >= 70 ? "text-success" : submission.aiScore >= 40 ? "text-warning" : "text-danger"}`}>
+                {submission.aiScore}/100
+              </span>
+            </div>
+          )}
+          {submission.aiVerdict && (
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted">Verdict:</span>
+              <span className="font-medium text-foreground capitalize">{submission.aiVerdict}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-xs text-muted">
         <div className="flex items-center gap-1.5">
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

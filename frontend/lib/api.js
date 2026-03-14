@@ -88,6 +88,12 @@ export const deleteProject = (id) =>
 export const assignFreelancer = (id, body) =>
   request(`/projects/${id}/assign`, { method: "POST", body: JSON.stringify(body) });
 
+export const applyForProject = (id, body) =>
+  request(`/projects/${id}/apply`, { method: "POST", body: JSON.stringify(body) });
+
+export const getProjectApplicants = (id) =>
+  request(`/projects/${id}/applicants`);
+
 // ─── MILESTONES ───────────────────────────────────────────────────────────────
 
 export const createMilestone = (body) =>
@@ -136,3 +142,12 @@ export const recalculatePFI = (userId) =>
   request(`/pfi/${userId}/recalculate`, { method: "POST" });
 
 export const getPFIRanking = () => request("/pfi/ranking");
+
+// ─── WALLET / ESCROW ─────────────────────────────────────────────────────────
+
+export const getWalletBalance = () => request("/payments/wallet");
+
+export const depositFunds = (body) =>
+  request("/payments/deposit", { method: "POST", body: JSON.stringify(body) });
+
+export const getEscrowSummary = () => request("/payments/escrow/summary");
