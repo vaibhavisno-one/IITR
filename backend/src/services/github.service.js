@@ -1,10 +1,23 @@
 export async function fetchRepositorySummary(repoUrl) {
-
   try {
 
-    const [owner, repo] = repoUrl
-      .replace("https://github.com/", "")
-      .split("/");
+    if (!repoUrl || !repoUrl.includes("github.com")) {
+      return {
+        valid: false,
+        message: "Invalid GitHub repository URL"
+      };
+    }
+
+    const parts = repoUrl.replace("https://github.com/", "").split("/");
+    const owner = parts[0];
+    const repo = parts[1];
+
+    if (!owner || !repo) {
+      return {
+        valid: false,
+        message: "Invalid repository format"
+      };
+    }
 
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
 
@@ -16,24 +29,31 @@ export async function fetchRepositorySummary(repoUrl) {
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
+      return {
+        valid: false,
+        message: `GitHub API error ${response.status}`
+      };
     }
 
     const data = await response.json();
 
-    return `
-Repository: ${data.full_name}
-Stars: ${data.stargazers_count}
-Forks: ${data.forks_count}
-Language: ${data.language}
-Description: ${data.description}
-`;
+    return {
+      valid: true,
+      summary: {
+        name: data.full_name,
+        stars: data.stargazers_count,
+        forks: data.forks_count,
+        language: data.language,
+        description: data.description
+      }
+    };
 
   } catch (error) {
 
-    console.warn("GitHub fetch failed:", error.message);
-
-    return "Repository metadata unavailable but submission accepted.";
+    return {
+      valid: false,
+      message: error.message || "GitHub request failed"
+    };
 
   }
 }

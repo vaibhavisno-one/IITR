@@ -1,83 +1,110 @@
 import Groq from "groq-sdk";
 
-export const evaluateSubmission = async (githubSummary, milestoneTitle, milestoneDescription, freelancerNotes = "") => {
-    const fallbackEvaluation = {
-        score: 75,
-        completed: true,
-        feedback: "Fallback evaluation used due to missing API key or an AI failure. The repository looks adequate.",
-        strengths: ["Submission received", "Basic structure present"],
-        improvements: ["Automated evaluation failed", "Requires human review"]
-    };
+export const evaluateSubmission = async (
+  githubSummary,
+  milestoneTitle,
+  milestoneDescription,
+  freelancerNotes = ""
+) => {
 
-    try {
-        if (!process.env.GROQ_API_KEY) {
-            console.warn("No GROQ API key configured. Using fallback evaluation.");
-            return fallbackEvaluation;
-        }
+  const fallbackEvaluation = {
+    score: 75,
+    completed: true,
+    feedback:
+      "Fallback evaluation used because the AI service failed. Repository appears structurally valid but requires manual review.",
+    strengths: ["Submission received", "Repository detected"],
+    improvements: ["AI evaluation unavailable", "Manual verification recommended"]
+  };
 
-        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  try {
 
-        const prompt = `You are a senior software engineer reviewing a milestone submission.
-Review this submission strictly against the milestone requirements and the repository context.
+    if (!process.env.GROQ_API_KEY) {
+      console.warn("No GROQ API key configured. Using fallback evaluation.");
+      return fallbackEvaluation;
+    }
 
-Milestone Title: ${milestoneTitle}
-Milestone Description: ${milestoneDescription}
-Freelancer Notes: ${freelancerNotes || 'None provided'}
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY
+    });
 
-GitHub Repository Analysis:
+    const prompt = `
+You are a senior software engineer reviewing a freelancer milestone submission.
+
+Your task is to determine whether the milestone requirements are satisfied.
+
+MILESTONE TITLE:
+${milestoneTitle}
+
+MILESTONE DESCRIPTION:
+${milestoneDescription}
+
+FREELANCER NOTES:
+${freelancerNotes || "None"}
+
+REPOSITORY SUMMARY:
 ${githubSummary}
 
-Evaluate the code quality, completeness, and correctness.
-Return strictly valid JSON matching this exact structure:
+Evaluate:
+
+• correctness of implementation  
+• completeness of the milestone  
+• repository structure  
+• code professionalism  
+
+If the milestone appears implemented → completed = true.
+
+Return ONLY valid JSON:
+
 {
   "score": number (0-100),
   "completed": boolean,
-  "feedback": "Detailed technical reasoning",
-  "strengths": ["point1", "point2"],
-  "improvements": ["point1", "point2"]
+  "feedback": "technical explanation",
+  "strengths": ["item1","item2"],
+  "improvements": ["item1","item2"]
 }
+`;
 
-Example response:
-{
-  "score": 88,
-  "completed": true,
-  "feedback": "The repository implements the required backend APIs and database schema.",
-  "strengths": [
-    "Clear project structure",
-    "Working API routes"
-  ],
-  "improvements": [
-    "Add error handling",
-    "Improve README documentation"
-  ]
-}
-
-Do not wrap in markdown blocks, just return the raw JSON object.`;
-
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are a senior software engineer conducting a code review. Output only valid JSON." },
-                { role: "user", content: prompt }
-            ],
-            model: "mixtral-8x7b-32768",
-            temperature: 0.2
-        });
-
-        const responseContent = completion.choices[0]?.message?.content || "";
-        const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
-
-        if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            if (typeof parsed.score === 'number' && typeof parsed.completed === 'boolean') {
-                return parsed;
-            }
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.2,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a senior software engineer performing a repository code review. Return only JSON."
+        },
+        {
+          role: "user",
+          content: prompt
         }
-        
-        throw new Error("Invalid format from AI. Score or completed key missing.");
-    } catch (error) {
-        console.error("Evaluation AI Error:", error.message);
-        return fallbackEvaluation;
+      ]
+    });
+
+    const content = completion.choices?.[0]?.message?.content || "";
+
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      throw new Error("AI returned invalid JSON");
     }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (
+      typeof parsed.score === "number" &&
+      typeof parsed.completed === "boolean"
+    ) {
+      return parsed;
+    }
+
+    throw new Error("Missing required AI fields");
+
+  } catch (error) {
+
+    console.error("Evaluation AI Error:", error.message);
+
+    return fallbackEvaluation;
+  }
 };
 
 export default { evaluateSubmission };
