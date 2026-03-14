@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { createSubmission, getSubmissionById } from "@/lib/api";
+import { createSubmission, getSubmissionById, getMilestoneById, getProjectMilestones } from "@/lib/api";
 import SubmissionResult from "@/components/submission/SubmissionResult";
 import withAuth from "@/components/withAuth";
 
@@ -10,6 +10,8 @@ function SubmitMilestone() {
   const router = useRouter();
   const { milestoneId } = router.query;
 
+  const [selectedMilestone, setSelectedMilestone] = useState(milestoneId || "");
+  const [projectMilestones, setProjectMilestones] = useState([]);
   const [submissionUrl, setSubmissionUrl] = useState("");
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -20,7 +22,24 @@ function SubmitMilestone() {
 
   useEffect(() => {
     if (!milestoneId) return;
-    setFetchLoading(false);
+    
+    // Fetch current milestone to identify the project
+    getMilestoneById(milestoneId)
+      .then((res) => {
+        const m = res?.data || res;
+        const pId = m?.project?._id || m?.project;
+        if (pId) {
+            getProjectMilestones(pId).then((mRes) => {
+                const arr = Array.isArray(mRes?.data) ? mRes.data : Array.isArray(mRes) ? mRes : [];
+                setProjectMilestones(arr.filter(mil => mil.status === "pending" || mil._id === milestoneId));
+                setFetchLoading(false);
+            }).catch(() => setFetchLoading(false));
+        } else {
+            setFetchLoading(false);
+        }
+      }).catch(() => setFetchLoading(false));
+
+    setSelectedMilestone(milestoneId);
   }, [milestoneId]);
 
   const handleSubmit = async (e) => {
@@ -30,9 +49,9 @@ function SubmitMilestone() {
 
     try {
       const res = await createSubmission({
-        milestoneId,
-        submissionUrl,
-        description,
+        milestoneId: selectedMilestone,
+        repoLink: submissionUrl,
+        content: description,
       });
 
       const data = res?.data || res;
@@ -94,7 +113,7 @@ function SubmitMilestone() {
             </div>
             <h1 className="text-2xl font-bold">Submission sent!</h1>
             <p className="mt-3 text-muted">
-              Your work for milestone <span className="font-medium text-foreground">&quot;{milestoneId}&quot;</span> has been submitted for AI review.
+              Your work for milestone <span className="font-medium text-foreground">&quot;{selectedMilestone}&quot;</span> has been submitted for AI review.
             </p>
           </div>
 
@@ -135,9 +154,7 @@ function SubmitMilestone() {
         </nav>
 
         <h1 className="text-3xl font-bold tracking-tight">Submit Work</h1>
-        <p className="mt-2 text-muted">
-          Milestone ID: <span className="font-medium text-foreground">{milestoneId}</span>
-        </p>
+        <p className="mt-2 text-muted">Submit your deliverable for AI review and escrow release.</p>
 
         {error && (
           <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -146,31 +163,59 @@ function SubmitMilestone() {
         )}
 
         <form onSubmit={handleSubmit} className="mt-8 rounded-2xl border border-border bg-card p-8">
+          
+          {/* Milestone Selection */}
           <div className="mb-6">
-            <label htmlFor="submissionUrl" className="mb-2 block text-sm font-medium">
-              Submission URL
+            <label htmlFor="milestoneSelect" className="mb-2 block text-sm font-medium">
+              Select Milestone
             </label>
-            <input
-              id="submissionUrl"
-              type="url"
-              value={submissionUrl}
-              onChange={(e) => setSubmissionUrl(e.target.value)}
-              required
-              placeholder="https://github.com/user/repo"
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-            <p className="mt-1.5 text-xs text-muted">Link to your code repository or deliverable.</p>
+            <div className="relative">
+                <select
+                id="milestoneSelect"
+                value={selectedMilestone}
+                onChange={(e) => setSelectedMilestone(e.target.value)}
+                required
+                className="w-full appearance-none rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                >
+                <option value="" disabled>Select a pending milestone...</option>
+                {projectMilestones.map((milestone) => (
+                    <option key={milestone._id || milestone.id} value={milestone._id || milestone.id}>
+                        {milestone.title} (${milestone.amount})
+                    </option>
+                ))}
+                </select>
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
           </div>
 
           <div className="mb-6">
-            <label htmlFor="desc" className="mb-2 block text-sm font-medium">Description</label>
+            <label htmlFor="submissionUrl" className="mb-2 block text-sm font-medium">
+              Repository or Link
+            </label>
+            <input
+              id="submissionUrl"
+              type="text"
+              value={submissionUrl}
+              onChange={(e) => setSubmissionUrl(e.target.value)}
+              placeholder="https://github.com/user/repo"
+              className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <p className="mt-1.5 text-xs text-muted">Provide the URL for your deliverable (optional).</p>
+          </div>
+
+          <div className="mb-6">
+            <label htmlFor="desc" className="mb-2 block text-sm font-medium">Details & Content</label>
             <textarea
               id="desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
               required
-              placeholder="Describe the work completed…"
+              placeholder="Provide a detailed description of the completed work..."
               className="w-full resize-none rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>

@@ -16,6 +16,7 @@ function EmployerDashboard() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filterTab, setFilterTab] = useState("all");
 
   useEffect(() => {
     getUserProjects()
@@ -113,9 +114,26 @@ function EmployerDashboard() {
           </Link>
         </div>
 
+        {/* Filters */}
+        <div className="mb-6 flex items-center gap-6 border-b border-border text-sm font-medium overflow-x-auto">
+          {["all", "open", "assigned", "active", "completed"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilterTab(tab)}
+              className={`capitalize transition-all whitespace-nowrap ${
+                filterTab === tab
+                  ? "border-b-2 border-primary pb-3 text-primary"
+                  : "border-b-2 border-transparent pb-3 text-muted hover:text-foreground"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
         {/* Active Projects */}
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your Projects</h2>
+          <h2 className="text-xl font-semibold capitalize">{filterTab} Projects</h2>
           <Link href="/employer/projects" className="text-sm font-medium text-primary hover:text-primary-hover">
             View all →
           </Link>
@@ -129,9 +147,19 @@ function EmployerDashboard() {
           </div>
         ) : projects.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.slice(0, 6).map((project) => (
-              <ProjectCard key={project._id || project.id} project={project} />
-            ))}
+            {projects
+              .filter((p) => {
+                const s = p.status?.toLowerCase();
+                if (filterTab === "all") return true;
+                if (filterTab === "open") return s === "open";
+                if (filterTab === "assigned") return s === "assigned";
+                if (filterTab === "active") return s === "in_progress";
+                if (filterTab === "completed") return s === "completed";
+                return true;
+              })
+              .map((project) => (
+                <ProjectCard key={project._id || project.id} project={project} />
+              ))}
           </div>
         ) : (
           <div className="rounded-xl border border-border bg-card py-12 text-center text-sm text-muted">

@@ -79,6 +79,21 @@ const releasePayment = asyncHandler(async (req, res) => {
     payment.releasedAt = new Date()
     await payment.save()
 
+    const employerWallet = await Wallet.findOne({ user: payment.employer });
+    const freelancerWallet = await Wallet.findOne({ user: payment.freelancer });
+
+    if (employerWallet) {
+        employerWallet.escrowLocked -= payment.amount;
+        await employerWallet.save();
+    }
+    
+    if (freelancerWallet) {
+        freelancerWallet.payoutBalance += payment.amount;
+        await freelancerWallet.save();
+    } else {
+        await Wallet.create({ user: payment.freelancer, walletBalance: 0, escrowLocked: 0, payoutBalance: payment.amount });
+    }
+
     const updatedPayment = await Payment.findById(payment._id)
         .populate('milestone')
         .populate('employer', 'username fullName email')
@@ -116,6 +131,13 @@ const refundPayment = asyncHandler(async (req, res) => {
     payment.refundedAt = new Date()
     await payment.save()
 
+    const employerWallet = await Wallet.findOne({ user: payment.employer });
+    if (employerWallet) {
+        employerWallet.escrowLocked -= payment.amount;
+        employerWallet.walletBalance += payment.amount;
+        await employerWallet.save();
+    }
+
     const updatedPayment = await Payment.findById(payment._id)
         .populate('milestone')
         .populate('employer', 'username fullName email')
@@ -150,7 +172,7 @@ const getPaymentHistory = asyncHandler(async (req, res) => {
 const getWalletBalance = asyncHandler(async (req, res) => {
     let wallet = await Wallet.findOne({ user: req.user._id });
     if (!wallet) {
-        wallet = await Wallet.create({ user: req.user._id, balance: 0 });
+        wallet = await Wallet.create({ user: req.user._id, walletBalance: 0, escrowLocked: 0, payoutBalance: 0 });
     }
     return res.status(200).json(new ApiResponse(200, wallet, "Wallet balance fetched"));
 });
@@ -163,9 +185,9 @@ const depositFunds = asyncHandler(async (req, res) => {
 
     let wallet = await Wallet.findOne({ user: req.user._id });
     if (!wallet) {
-        wallet = await Wallet.create({ user: req.user._id, balance: amount });
+        wallet = await Wallet.create({ user: req.user._id, walletBalance: amount, escrowLocked: 0, payoutBalance: 0 });
     } else {
-        wallet.balance += Number(amount);
+        wallet.walletBalance += Number(amount);
         await wallet.save();
     }
 
@@ -173,12 +195,8 @@ const depositFunds = asyncHandler(async (req, res) => {
 });
 
 const getEscrowSummary = asyncHandler(async (req, res) => {
-    const payments = await Payment.find({
-        employer: req.user._id,
-        status: PaymentStatus.ESCROW
-    });
-
-    const lockedAmount = payments.reduce((acc, p) => acc + p.amount, 0);
+    let wallet = await Wallet.findOne({ user: req.user._id });
+    const lockedAmount = wallet ? wallet.escrowLocked : 0;
 
     return res.status(200).json(new ApiResponse(200, { lockedAmount }, "Escrow summary fetched"));
 });

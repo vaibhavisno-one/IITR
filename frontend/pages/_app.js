@@ -9,7 +9,10 @@ export default function App({ Component, pageProps }) {
   return (
     <AuthProvider>
       <WalletProvider>
-        <Component {...pageProps} />
+        <div className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+          <Navbar />
+          <Component {...pageProps} />
+        </div>
       </WalletProvider>
     </AuthProvider>
   );

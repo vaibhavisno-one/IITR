@@ -4,12 +4,14 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { Submission } from "../models/submission.model.js";
 import { Milestone } from "../models/milestone.model.js";
 import { Project } from "../models/project.model.js";
-import { SubmissionStatus } from "../../constants.js";
+import { SubmissionStatus, MilestoneStatus, PaymentStatus } from "../../constants.js";
 import aiService from "../services/ai.service.js";
 import pfiService from "../services/pfi.service.js";
+import { Wallet } from "../models/wallet.model.js";
+import { Payment } from "../models/payment.model.js";
 
 const createSubmission = asyncHandler(async (req, res) => {
-    const { milestoneId, content, attachments } = req.body
+    const { milestoneId, repoLink, content, attachments } = req.body
 
     if (!milestoneId || !content) {
         throw new ApiError(400, "Milestone ID and content are required")
@@ -27,23 +29,77 @@ const createSubmission = asyncHandler(async (req, res) => {
 
     const aiEvaluation = await aiService.evaluateSubmission(content)
 
+    const isCompleted = aiEvaluation.completed;
+    const finalSubmissionStatus = isCompleted ? SubmissionStatus.APPROVED : SubmissionStatus.REJECTED;
+
     const submission = await Submission.create({
         milestone: milestoneId,
         freelancer: req.user._id,
         content,
+        repoLink,
         attachments: attachments || [],
-        status: SubmissionStatus.PENDING,
+        status: finalSubmissionStatus,
         aiScore: aiEvaluation.score,
         aiFeedback: aiEvaluation.feedback
     })
+
+    // Automatic Milestone Updates and Payouts based on AI resolution
+    let payoutAmount = 0;
+    milestone.status = isCompleted ? MilestoneStatus.COMPLETED : MilestoneStatus.FAILED;
+
+    if (isCompleted) {
+        const currentDate = new Date();
+        const deadline = new Date(milestone.deadline);
+        
+        // 100% on-time, 70% if late
+        payoutAmount = currentDate <= deadline ? milestone.amount : Math.floor(milestone.amount * 0.7);
+        const employerRefund = milestone.amount - payoutAmount;
+
+        // Escrow transfer
+        const employerWallet = await Wallet.findOne({ user: milestone.project.employer });
+        const freelancerWallet = await Wallet.findOne({ user: req.user._id });
+
+        if (employerWallet) {
+            employerWallet.escrowLocked -= milestone.amount;
+            employerWallet.walletBalance += employerRefund; // Refund 30% if late
+            await employerWallet.save();
+        }
+
+        if (freelancerWallet) {
+            freelancerWallet.payoutBalance += payoutAmount;
+            await freelancerWallet.save();
+        } else {
+            await Wallet.create({ user: req.user._id, walletBalance: 0, escrowLocked: 0, payoutBalance: payoutAmount });
+        }
+
+        // Generate a Payment transaction record for the history view
+        await Payment.create({
+            milestone: milestoneId,
+            employer: milestone.project.employer,
+            freelancer: req.user._id,
+            amount: payoutAmount,
+            status: PaymentStatus.RELEASED,
+            transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            releasedAt: new Date()
+        });
+    }
+
+    await milestone.save();
 
     const createdSubmission = await Submission.findById(submission._id)
         .populate('milestone')
         .populate('freelancer', 'username fullName email')
 
+    const responseData = {
+        ...createdSubmission.toObject(),
+        aiVerdict: aiEvaluation.feedback,
+        milestoneStatus: milestone.status,
+        payout: payoutAmount
+    };
+
     return res
         .status(201)
-        .json(new ApiResponse(201, createdSubmission, "Submission created successfully"))
+        .json(new ApiResponse(201, responseData, "Submission reviewed by AI successfully"))
 })
 
 const getSubmissionById = asyncHandler(async (req, res) => {

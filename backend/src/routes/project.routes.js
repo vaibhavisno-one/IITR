@@ -12,6 +12,7 @@ router.get("/:id", projectController.getProjectById)
 router.put("/:id", requireEmployer, projectController.updateProject)
 router.delete("/:id", requireEmployer, projectController.deleteProject)
 router.post("/:id/assign", requireEmployer, projectController.assignFreelancer)
+router.post("/:id/generate-milestones", requireEmployer, projectController.generateMilestones)
 
 router.post("/:id/apply", projectController.applyForProject)
 router.get("/:id/applicants", requireEmployer, projectController.getProjectApplicants)

@@ -8,7 +8,17 @@ const walletSchema = new Schema(
             required: true,
             unique: true
         },
-        balance: {
+        walletBalance: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+        escrowLocked: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+        payoutBalance: {
             type: Number,
             default: 0,
             min: 0

@@ -94,10 +94,15 @@ export const applyForProject = (id, body) =>
 export const getProjectApplicants = (id) =>
   request(`/projects/${id}/applicants`);
 
+export const generateMilestones = (id) =>
+  request(`/projects/${id}/generate-milestones`, { method: "POST" });
+
 // ─── MILESTONES ───────────────────────────────────────────────────────────────
 
 export const createMilestone = (body) =>
   request("/milestones", { method: "POST", body: JSON.stringify(body) });
+
+export const getMilestoneById = (id) => request(`/milestones/${id}`);
 
 export const getProjectMilestones = (projectId) =>
   request(`/projects/${projectId}/milestones`);

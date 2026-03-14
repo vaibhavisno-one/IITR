@@ -9,6 +9,7 @@ export function WalletProvider({ children }) {
   
   const [walletBalance, setWalletBalance] = useState(0);
   const [lockedBalance, setLockedBalance] = useState(0);
+  const [payoutBalance, setPayoutBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,11 +26,17 @@ export function WalletProvider({ children }) {
       ]);
 
       if (walletRes.status === "fulfilled") {
-        setWalletBalance(walletRes.value?.data?.balance || walletRes.value?.balance || 0);
+        const wData = walletRes.value?.data || walletRes.value || {};
+        setWalletBalance(wData.walletBalance ?? 0);
+        setPayoutBalance(wData.payoutBalance ?? 0);
+        // Optional fallback locking to ensure UI sync
+        if (user.role === "freelancer") {
+          setLockedBalance(0);
+        }
       }
       
       if (escrowRes.status === "fulfilled") {
-        setLockedBalance(escrowRes.value?.data?.lockedAmount || escrowRes.value?.lockedAmount || 0);
+        setLockedBalance(escrowRes.value?.data?.lockedAmount ?? escrowRes.value?.lockedAmount ?? 0);
       }
       
       if (historyRes.status === "fulfilled") {
@@ -67,6 +74,7 @@ export function WalletProvider({ children }) {
   const value = {
     walletBalance,
     lockedBalance,
+    payoutBalance,
     transactions,
     loading,
     error,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getProjectApplicants, assignFreelancer, getPFIScore } from "@/lib/api";
 
-export default function ApplicantsList({ projectId }) {
+export default function ApplicantsList({ projectId, projectStatus }) {
   const [applicants, setApplicants] = useState([]);
   const [pfiScores, setPfiScores] = useState({});
   const [loading, setLoading] = useState(true);
@@ -134,7 +134,7 @@ export default function ApplicantsList({ projectId }) {
                 ) : (
                   <button
                     onClick={() => handleAccept(applicant)}
-                    disabled={assigning === userId}
+                    disabled={assigning === userId || projectStatus !== "open"}
                     className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {assigning === userId ? "Assigning…" : "Accept"}

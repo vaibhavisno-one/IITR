@@ -7,14 +7,12 @@ import withAuth from "@/components/withAuth";
 
 function WalletPage() {
   const { user } = useAuth();
-  const { loading, error, transactions, walletBalance, lockedBalance } = useWallet();
+  const { loading, error, transactions, walletBalance, lockedBalance, payoutBalance } = useWallet();
 
   const isEmployer = user?.role === "employer";
 
-  // Compute freelancer earnings vs pending from history
-  const totalEarnings = transactions
-    .filter((p) => p.status === "completed" && p.freelancer?._id === user?._id)
-    .reduce((acc, p) => acc + (p.amount || 0), 0);
+  // Use true backend payoutBalance for earnings
+  const totalEarnings = payoutBalance || 0;
   
   const pendingPayments = transactions
     .filter((p) => (p.status === "pending" || p.status === "escrowed") && p.freelancer?._id === user?._id)

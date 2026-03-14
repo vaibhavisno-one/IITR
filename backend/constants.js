@@ -8,6 +8,7 @@ export const UserRoles = {
 
 export const ProjectStatus = {
     OPEN: "open",
+    ASSIGNED: "assigned",
     IN_PROGRESS: "in_progress",
     COMPLETED: "completed",
     CANCELLED: "cancelled"

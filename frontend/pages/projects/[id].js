@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getProjectById, getProjectMilestones, applyForProject } from "@/lib/api";
+import { getProjectById, getProjectMilestones, applyForProject, generateMilestones } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import MilestoneTimeline from "@/components/milestone/MilestoneTimeline";
 import ApplicantsList from "@/components/project/ApplicantsList";
@@ -29,6 +29,7 @@ export default function ProjectDetail() {
   const [applyMessage, setApplyMessage] = useState("");
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -62,6 +63,7 @@ export default function ProjectDetail() {
 
   const isFreelancer = user?.role === "freelancer";
   const isEmployer = user?.role === "employer";
+  const isAssignedFreelancer = isFreelancer && project?.freelancer && (project.freelancer._id === user._id || project.freelancer === user._id);
   const backLink = isFreelancer ? "/freelancer/projects" : "/employer/projects";
 
   const handleApply = async (e) => {
@@ -74,6 +76,20 @@ export default function ProjectDetail() {
       alert(err.message || "Failed to apply.");
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleGenerateMilestones = async () => {
+    setGenerating(true);
+    try {
+      await generateMilestones(id);
+      const updatedMilestones = await getProjectMilestones(id);
+      const list = updatedMilestones?.data || updatedMilestones || [];
+      setMilestones(Array.isArray(list) ? list : []);
+    } catch (err) {
+      alert(err.message || "Failed to generate AI milestones.");
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -158,9 +174,28 @@ export default function ProjectDetail() {
                   ({completedCount}/{milestones.length} completed)
                 </span>
               </h2>
+              {isEmployer && milestones.length === 0 && project.status === "open" && (
+                <div className="mb-6 rounded-xl border border-border bg-card p-6 text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary">
+                    <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="mb-2 text-lg font-bold">No Milestones Yet</h3>
+                  <p className="mb-6 text-sm text-muted">Use AI to automatically break down your project into smart milestones based on your budget and deadline.</p>
+                  <button
+                    onClick={handleGenerateMilestones}
+                    disabled={generating}
+                    className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {generating ? "Generating AI Milestones..." : "Generate Milestones"}
+                  </button>
+                </div>
+              )}
+              
               <MilestoneTimeline
                 milestones={milestones}
-                showSubmitButton={isFreelancer}
+                showSubmitButton={isAssignedFreelancer}
               />
             </div>
 
@@ -168,7 +203,7 @@ export default function ProjectDetail() {
             {isEmployer && (
               <div className="mt-10 border-t border-border pt-10">
                 <h2 className="mb-6 text-xl font-semibold">Applicants</h2>
-                <ApplicantsList projectId={id} />
+                <ApplicantsList projectId={id} projectStatus={project.status} />
               </div>
             )}
 
