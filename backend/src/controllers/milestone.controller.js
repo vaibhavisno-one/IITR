@@ -57,6 +57,20 @@ const getProjectMilestones = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, milestones, "Milestones fetched successfully"))
 })
 
+const getMilestoneById = asyncHandler(async (req, res) => {
+    const { id } = req.params
+
+    const milestone = await Milestone.findById(id).populate('project')
+
+    if (!milestone) {
+        throw new ApiError(404, "Milestone not found")
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, milestone, "Milestone fetched successfully"))
+})
+
 const updateMilestone = asyncHandler(async (req, res) => {
     const { id } = req.params
     const { title, description, amount, deadline, order, status } = req.body
@@ -114,6 +128,7 @@ const completeMilestone = asyncHandler(async (req, res) => {
 export default {
     createMilestone,
     getProjectMilestones,
+    getMilestoneById,
     updateMilestone,
     completeMilestone
 }

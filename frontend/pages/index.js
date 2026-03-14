@@ -58,25 +58,25 @@ export default function Home() {
             <div className="absolute bottom-0 right-0 h-[400px] w-[600px] translate-x-1/4 translate-y-1/4 rounded-full bg-accent/8 blur-[100px]" />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-36">
+          <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-[13px] font-medium text-muted shadow-sm">
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 Now in Public Beta
               </div>
-              <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
+              <h1 className="text-4xl md:text-[56px] lg:text-[72px] font-bold leading-tight tracking-tight text-foreground">
                 Freelancing built on{" "}
                 <span className="bg-gradient-to-r from-primary via-primary-hover to-accent bg-clip-text text-transparent">
                   trust & milestones
                 </span>
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted md:text-xl">
+              <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-muted md:text-[19px]">
                 GigChain connects employers and freelancers through milestone-based contracts, escrow payments, and transparent reputation scores.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/projects"
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-white transition-all duration-300 hover:bg-primary-hover hover:shadow-2xl hover:shadow-primary/30 sm:w-auto"
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary px-8 py-3.5 text-[15px] font-medium text-white transition-all duration-300 hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)] sm:w-auto"
                 >
                   Post a Project
                   <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/projects"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-8 py-3.5 text-base font-semibold text-foreground transition-all duration-300 hover:border-border-accent hover:bg-surface-hover sm:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-border bg-surface px-8 py-3.5 text-[15px] font-medium text-foreground transition-all duration-300 hover:border-border-accent hover:bg-surface-hover hover:shadow-sm sm:w-auto"
                 >
                   Find Work
                 </Link>
@@ -113,7 +113,7 @@ export default function Home() {
               Why teams choose{" "}
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">GigChain</span>
             </h2>
-            <p className="mt-4 text-lg text-muted">
+            <p className="mt-4 text-[17px] text-muted">
               A freelance platform designed for accountability, transparency, and fair compensation.
             </p>
           </div>
@@ -122,42 +122,42 @@ export default function Home() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-2xl border border-border bg-card p-8 transition-all duration-300 hover:border-border-accent hover:bg-card-hover hover:shadow-xl hover:shadow-primary/5"
+                className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:border-border-accent hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:-translate-y-1"
               >
-                <div className="mb-5 inline-flex rounded-xl bg-primary-subtle p-3 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                <div className="mb-6 inline-flex rounded-[10px] bg-primary-subtle p-3 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-3 leading-relaxed text-muted">{feature.desc}</p>
+                <p className="mt-3 leading-relaxed text-muted text-[15px]">{feature.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* CTA */}
-        <section className="mx-auto max-w-7xl px-6 pb-24">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface via-card to-surface p-12 text-center md:p-20">
+        <section className="mx-auto max-w-7xl px-6 pb-24 text-center">
+          <div className="relative overflow-hidden rounded-[32px] border border-border bg-gradient-to-br from-surface via-card to-surface p-12 shadow-sm md:p-20">
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-primary/10 blur-[80px]" />
               <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-accent/10 blur-[80px]" />
             </div>
             <div className="relative">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-foreground">
                 Ready to start building?
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-lg text-muted">
+              <p className="mx-auto mt-4 max-w-xl text-[17px] text-muted">
                 Join thousands of freelancers and employers who trust GigChain for fair, milestone-based collaboration.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-white transition-all duration-300 hover:bg-primary-hover hover:shadow-2xl hover:shadow-primary/30"
+                  className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-[20px] py-[12px] text-[15px] font-medium text-white transition-all duration-300 hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
                 >
                   Get Started Free
                 </Link>
                 <Link
                   href="/projects"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border px-8 py-3.5 text-base font-semibold text-foreground transition-colors hover:border-border-accent hover:bg-surface-hover"
+                  className="inline-flex items-center gap-2 rounded-[10px] border border-border px-[20px] py-[12px] bg-surface text-[15px] font-medium text-foreground transition-all duration-300 hover:border-border-accent hover:bg-surface-hover hover:shadow-sm"
                 >
                   Browse Projects
                 </Link>

@@ -28,7 +28,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-xl transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
@@ -48,9 +48,9 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                className={`rounded-[10px] px-4 py-2 text-[15px] font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-primary-subtle text-primary-hover"
+                    ? "bg-primary-subtle text-primary"
                     : "text-muted hover:text-foreground hover:bg-surface-hover"
                 }`}
               >
@@ -78,13 +78,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
+                className="rounded-[10px] px-4 py-2 text-[15px] font-medium text-muted transition-colors hover:text-foreground"
               >
                 Log in
               </Link>
               <Link
                 href="/register"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+                className="rounded-[10px] bg-primary px-[18px] py-[10px] text-[15px] font-medium text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
               >
                 Sign up
               </Link>
@@ -133,7 +133,7 @@ export default function Navbar() {
             {user ? (
               <button
                 onClick={() => { setMobileOpen(false); handleLogout(); }}
-                className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-hover"
+                className="rounded-[10px] border border-border px-4 py-2.5 text-[15px] font-medium text-foreground hover:bg-surface-hover"
               >
                 Log out
               </button>
@@ -142,14 +142,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted hover:text-foreground"
+                  className="rounded-[10px] px-4 py-2.5 text-[15px] font-medium text-muted hover:text-foreground"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-primary-hover"
+                  className="rounded-[10px] bg-primary px-[18px] py-[10px] text-center text-[15px] font-medium text-white hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
                 >
                   Sign up
                 </Link>

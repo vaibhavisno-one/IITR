@@ -7,6 +7,7 @@ const router = Router()
 router.use(verifyJWT)
 
 router.post("/", requireEmployer, milestoneController.createMilestone)
+router.get("/:id", milestoneController.getMilestoneById)
 router.put("/:id", requireEmployer, milestoneController.updateMilestone)
 router.patch("/:id/complete", requireEmployer, milestoneController.completeMilestone)
 

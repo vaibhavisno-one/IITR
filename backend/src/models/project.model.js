@@ -40,7 +40,15 @@ const projectSchema = new Schema(
         skills: {
             type: [String],
             default: []
-        }
+        },
+        applicants: [
+            {
+                freelancer: { type: Schema.Types.ObjectId, ref: "User" },
+                message: { type: String, default: "" },
+                status: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
+                appliedAt: { type: Date, default: Date.now }
+            }
+        ]
     },
     {
         timestamps: true

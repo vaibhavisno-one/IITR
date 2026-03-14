@@ -19,6 +19,9 @@ const submissionSchema = new Schema(
             type: String,
             required: true,
         },
+        repoLink: {
+            type: String,
+        },
         attachments: {
             type: [String],
             default: []

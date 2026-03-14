@@ -11,4 +11,8 @@ router.post("/release/:milestoneId", requireEmployer, paymentController.releaseP
 router.post("/refund/:milestoneId", requireEmployer, paymentController.refundPayment)
 router.get("/history", paymentController.getPaymentHistory)
 
+router.get("/wallet", paymentController.getWalletBalance)
+router.post("/deposit", requireEmployer, paymentController.depositFunds)
+router.get("/escrow/summary", requireEmployer, paymentController.getEscrowSummary)
+
 export default router

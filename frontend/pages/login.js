@@ -30,7 +30,8 @@ export default function Login() {
         data.data || data;
 
       login(user, accessToken, refreshToken);
-      router.push("/dashboard");
+      const dest = user?.role === "employer" ? "/employer/dashboard" : "/freelancer/dashboard";
+      router.push(dest);
     } catch (err) {
       console.error("[Login] Login failed:", err.message);
       setError(err.message || "Login failed. Please check your credentials.");
