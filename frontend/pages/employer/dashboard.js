@@ -8,7 +8,7 @@ import ProjectCard from "@/components/project/ProjectCard";
 import withAuth from "@/components/withAuth";
 
 function Skeleton({ className = "" }) {
-  return <div className={`animate-pulse rounded-lg bg-surface ${className}`} />;
+  return <div className={`animate-pulse rounded-2xl bg-surface ${className}`} />;
 }
 
 function EmployerDashboard() {
@@ -68,10 +68,10 @@ function EmployerDashboard() {
         <meta name="description" content="Manage your projects, budgets, and escrow on GigChain." />
       </Head>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight">Employer Dashboard</h1>
-          <p className="mt-2 text-muted">
+      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+        <div className="mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Employer Dashboard</h1>
+          <p className="mt-3 text-lg text-muted">
             Welcome back{user?.name ? `, ${user.name}` : ""}! Manage your projects and escrow.
           </p>
         </div>
@@ -83,47 +83,47 @@ function EmployerDashboard() {
         )}
 
         {/* Quick Stats */}
-        <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mb-12 grid grid-cols-2 gap-6 lg:grid-cols-4">
           {quickStats.map((s) => (
             <div
               key={s.label}
-              className="rounded-xl border border-border bg-card p-5 transition-colors hover:bg-card-hover"
+              className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:-translate-y-1"
             >
-              <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-              <div className="mt-1 text-xs text-muted">{s.label}</div>
+              <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+              <div className="mt-2 text-[15px] font-medium text-muted">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-10 flex flex-wrap gap-4">
           <Link
             href="/employer/create-project"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+            className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-[18px] py-[10px] text-[15px] font-medium text-white transition-all hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Create Project
           </Link>
           <Link
             href="/wallet"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+            className="inline-flex items-center gap-2 rounded-[10px] border border-border px-[18px] py-[10px] text-[15px] font-medium text-foreground transition-all hover:bg-surface-hover hover:shadow-sm"
           >
             Wallet & Escrow
           </Link>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex items-center gap-6 border-b border-border text-sm font-medium overflow-x-auto">
+        <div className="mb-8 flex items-center gap-8 border-b border-border text-[15px] font-medium overflow-x-auto">
           {["all", "open", "assigned", "active", "completed"].map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterTab(tab)}
-              className={`capitalize transition-all whitespace-nowrap ${
+              className={`capitalize transition-all whitespace-nowrap px-1 ${
                 filterTab === tab
                   ? "border-b-2 border-primary pb-3 text-primary"
-                  : "border-b-2 border-transparent pb-3 text-muted hover:text-foreground"
+                  : "border-b-2 border-transparent pb-3 text-muted hover:text-foreground hover:border-border-accent"
               }`}
             >
               {tab}
@@ -132,21 +132,21 @@ function EmployerDashboard() {
         </div>
 
         {/* Active Projects */}
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-semibold capitalize">{filterTab} Projects</h2>
-          <Link href="/employer/projects" className="text-sm font-medium text-primary hover:text-primary-hover">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold capitalize">{filterTab} Projects</h2>
+          <Link href="/employer/projects" className="text-[15px] font-medium text-primary hover:text-primary-hover transition-colors">
             View all →
           </Link>
         </div>
 
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Skeleton className="h-44" />
-            <Skeleton className="h-44" />
-            <Skeleton className="h-44" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-[212px]" />
+            <Skeleton className="h-[212px]" />
+            <Skeleton className="h-[212px]" />
           </div>
         ) : projects.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {projects
               .filter((p) => {
                 const s = p.status?.toLowerCase();
@@ -162,9 +162,9 @@ function EmployerDashboard() {
               ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card py-12 text-center text-sm text-muted">
+          <div className="rounded-2xl border border-border bg-card py-16 text-center text-[15px] text-muted shadow-sm">
             No projects yet.{" "}
-            <Link href="/employer/create-project" className="text-primary hover:text-primary-hover">
+            <Link href="/employer/create-project" className="font-medium text-primary transition-colors hover:text-primary-hover">
               Create your first project →
             </Link>
           </div>

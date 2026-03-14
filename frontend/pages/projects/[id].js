@@ -95,13 +95,13 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <Skeleton className="mb-6 h-5 w-32" />
+      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+        <Skeleton className="mb-8 h-5 w-32" />
         <div className="grid gap-10 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-6">
             <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-40" />
+            <Skeleton className="h-[212px]" />
+            <Skeleton className="h-[212px]" />
           </div>
           <Skeleton className="h-64" />
         </div>
@@ -112,9 +112,9 @@ export default function ProjectDetail() {
   if (error || !project) {
     return (
       <main className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <h1 className="text-2xl font-bold">Project not found</h1>
-        <p className="mt-2 text-muted">{error || "The project you're looking for doesn't exist."}</p>
-        <Link href={backLink} className="mt-6 inline-block text-primary hover:text-primary-hover">
+        <h1 className="text-3xl font-bold">Project not found</h1>
+        <p className="mt-3 text-[17px] text-muted">{error || "The project you're looking for doesn't exist."}</p>
+        <Link href={backLink} className="mt-6 inline-block font-medium text-primary hover:text-primary-hover">
           ← Back to projects
         </Link>
       </main>
@@ -139,10 +139,10 @@ export default function ProjectDetail() {
         <meta name="description" content={project.description} />
       </Head>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-2 text-sm text-muted">
-          <Link href={backLink} className="hover:text-foreground">
+        <nav className="mb-8 flex items-center gap-2 text-[15px] font-medium text-muted">
+          <Link href={backLink} className="hover:text-foreground transition-colors">
             Projects
           </Link>
           <span>/</span>
@@ -152,41 +152,40 @@ export default function ProjectDetail() {
         <div className="grid gap-10 lg:grid-cols-3">
           {/* Main content */}
           <div className="lg:col-span-2">
-            <div className="mb-8">
+            <div className="mb-10">
               <div className="flex flex-wrap items-start gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{project.title}</h1>
                 <span
-                  className={`mt-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                  className={`mt-1.5 rounded-full px-3 py-1 text-[13px] font-semibold capitalize ${
                     statusStyles[project.status] || "bg-surface text-muted"
                   }`}
                 >
-                  {project.status}
+                  {project.status === 'in_progress' ? 'active' : project.status}
                 </span>
               </div>
-              <p className="mt-4 leading-relaxed text-muted">{project.description}</p>
+              <p className="mt-4 text-[17px] leading-relaxed text-muted">{project.description}</p>
             </div>
 
-            {/* Milestones */}
             <div>
-              <h2 className="mb-6 text-xl font-semibold">
+              <h2 className="mb-6 text-2xl font-semibold">
                 Milestones{" "}
-                <span className="text-sm font-normal text-muted">
+                <span className="text-[17px] font-normal text-muted">
                   ({completedCount}/{milestones.length} completed)
                 </span>
               </h2>
               {isEmployer && milestones.length === 0 && project.status === "open" && (
-                <div className="mb-6 rounded-xl border border-border bg-card p-6 text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle text-primary">
+                <div className="mb-8 rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+                  <div className="mx-auto mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primary-subtle text-primary">
                     <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <h3 className="mb-2 text-lg font-bold">No Milestones Yet</h3>
-                  <p className="mb-6 text-sm text-muted">Use AI to automatically break down your project into smart milestones based on your budget and deadline.</p>
+                  <h3 className="mb-2 text-xl font-bold">No Milestones Yet</h3>
+                  <p className="mb-8 text-[15px] font-medium text-muted mx-auto max-w-md">Use AI to automatically break down your project into smart milestones based on your budget and deadline.</p>
                   <button
                     onClick={handleGenerateMilestones}
                     disabled={generating}
-                    className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-[10px] bg-primary px-[20px] py-[12px] text-[15px] font-medium text-white transition-all hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {generating ? "Generating AI Milestones..." : "Generate Milestones"}
                   </button>
@@ -209,35 +208,35 @@ export default function ProjectDetail() {
 
             {/* Apply (Freelancer only) */}
             {isFreelancer && project.status !== "completed" && project.status !== "assigned" && !project.freelancer && (
-              <div className="mt-10 border-t border-border pt-10">
-                <h2 className="mb-6 text-xl font-semibold">Apply for Project</h2>
+              <div className="mt-12 border-t border-border pt-10">
+                <h2 className="mb-6 text-2xl font-semibold">Apply for Project</h2>
                 {applied ? (
-                  <div className="rounded-xl border border-border bg-success-subtle p-6 text-center">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success/20 text-success">
+                  <div className="rounded-2xl border border-border bg-success-subtle p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-success/20 text-success text-2xl">
                       ✓
                     </div>
-                    <h3 className="text-lg font-bold text-success">Application Sent</h3>
-                    <p className="mt-2 text-sm text-foreground">
+                    <h3 className="text-xl font-bold text-success">Application Sent</h3>
+                    <p className="mt-3 text-[15px] font-medium text-foreground">
                       The employer will review your profile and application message.
                     </p>
                   </div>
                 ) : (
-                  <form onSubmit={handleApply} className="rounded-xl border border-border bg-card p-6">
-                    <label htmlFor="message" className="mb-2 block text-sm font-medium">
+                  <form onSubmit={handleApply} className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+                    <label htmlFor="message" className="mb-3 block text-[15px] font-semibold text-foreground">
                       Message to Employer
                     </label>
                     <textarea
                       id="message"
                       value={applyMessage}
                       onChange={(e) => setApplyMessage(e.target.value)}
-                      rows={4}
+                      rows={5}
                       placeholder="Why are you the best fit for this project? Describe your approach..."
-                      className="mb-4 w-full resize-none rounded-lg border border-border bg-surface px-4 py-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="mb-6 w-full resize-none rounded-xl border border-border bg-surface px-5 py-4 text-[15px] font-medium transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                     <button
                       type="submit"
                       disabled={applying}
-                      className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-[10px] bg-primary px-[20px] py-[12px] text-[15px] font-semibold text-white transition-all hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)] disabled:cursor-not-allowed disabled:opacity-60 w-full md:w-auto"
                     >
                       {applying ? "Applying..." : "Apply for Project"}
                     </button>
@@ -251,16 +250,21 @@ export default function ProjectDetail() {
           <div>
             <div className="sticky top-28 space-y-6">
               {/* Info card */}
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h3 className="mb-4 font-semibold text-foreground">Project Details</h3>
-                <dl className="space-y-4">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <h3 className="mb-5 text-[17px] font-semibold text-foreground">Project Details</h3>
+                <dl className="space-y-5">
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Employer</dt>
-                    <dd className="mt-1 text-sm font-medium text-foreground">{employerName}</dd>
+                    <dt className="text-[12px] font-semibold uppercase tracking-wider text-muted">Employer</dt>
+                    <dd className="mt-1 flex items-center gap-2 text-[15px] font-medium text-foreground">
+                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                        {(employerName || "U")[0].toUpperCase()}
+                      </div>
+                      {employerName}
+                    </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wider text-muted">Budget</dt>
-                    <dd className="mt-1 text-sm font-bold text-foreground">
+                    <dt className="text-[12px] font-semibold uppercase tracking-wider text-muted">Budget</dt>
+                    <dd className="mt-1 text-[22px] font-black text-foreground tracking-tight">
                       ${(project.budget || 0).toLocaleString()}
                     </dd>
                   </div>
@@ -314,7 +318,7 @@ export default function ProjectDetail() {
               {/* Action */}
               <Link
                 href={backLink}
-                className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface w-full py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface w-full py-4 text-[15px] font-medium text-foreground transition-all hover:bg-surface-hover hover:shadow-sm"
               >
                 ← Back to projects
               </Link>

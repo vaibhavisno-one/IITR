@@ -25,11 +25,11 @@ export default function MilestoneCard({ milestone, index, showSubmitButton = tru
   const payout = getPayoutInfo(milestone);
 
   return (
-    <div className="group relative flex gap-4">
+    <div className="group relative flex gap-5">
       {/* Timeline line + dot */}
       <div className="flex flex-col items-center">
         <div
-          className={`z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-border text-xs font-bold ${
+          className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-border text-[13px] font-bold shadow-sm ${
             milestone.status === "completed"
               ? "border-success bg-success-subtle text-success"
               : milestone.status === "submitted"
@@ -45,22 +45,22 @@ export default function MilestoneCard({ milestone, index, showSubmitButton = tru
       </div>
 
       {/* Card */}
-      <div className="mb-6 flex-1 rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:border-border-accent hover:bg-card-hover">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-8 flex-1 rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-border-accent hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:-translate-y-1">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h4 className="font-semibold text-foreground">{milestone.title}</h4>
-            <p className="mt-1 text-sm text-muted">
+            <h4 className="text-[17px] font-semibold text-foreground">{milestone.title}</h4>
+            <p className="mt-1.5 text-[15px] font-medium text-muted">
               Due: {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : "TBD"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {milestone.amount != null && (
-              <span className="rounded-lg bg-surface px-2.5 py-1 text-xs font-bold text-foreground">
+              <span className="rounded-[10px] bg-surface px-4 py-2 border border-border text-[15px] font-bold text-foreground">
                 ${Number(milestone.amount).toLocaleString()}
               </span>
             )}
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold capitalize ${config.bg} ${config.text}`}
+              className={`inline-flex items-center gap-2 rounded-[10px] px-4 py-2 text-[13px] font-semibold uppercase tracking-wider ${config.bg} ${config.text}`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
               {config.label}
@@ -80,12 +80,12 @@ export default function MilestoneCard({ milestone, index, showSubmitButton = tru
 
         {/* Submit button (freelancer only) */}
         {showSubmitButton && milestone.status === "pending" && (
-          <div className="mt-4">
+          <div className="mt-6">
             <Link
               href={`/submit/${milestone._id || milestone.id}`}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-[18px] py-[10px] text-[15px] font-semibold text-white transition-all duration-300 hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
               Submit Work

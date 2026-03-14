@@ -2,34 +2,32 @@ import Link from "next/link";
 
 const statusStyles = {
   active: "bg-success-subtle text-success",
-  completed: "bg-primary-subtle text-primary-hover",
+  completed: "bg-primary-subtle text-primary",
   pending: "bg-warning-subtle text-warning",
 };
 
 export default function ProjectCard({ project }) {
   return (
     <Link href={`/projects/${project._id || project.id}`} className="group block">
-      <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:border-border-accent hover:bg-card-hover hover:shadow-xl hover:shadow-primary/5">
-        {/* Glow accent */}
-        <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-primary/5 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all duration-300 hover:border-border-accent hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:-translate-y-1">
 
         <div className="relative">
           {/* Header */}
           <div className="mb-4 flex items-start justify-between gap-3">
-            <h3 className="text-lg font-semibold leading-tight text-foreground transition-colors group-hover:text-primary-hover">
+            <h3 className="text-xl font-semibold leading-tight text-foreground transition-colors group-hover:text-primary">
               {project.title}
             </h3>
             <span
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+              className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-medium capitalize ${
                 statusStyles[project.status] || "bg-surface text-muted"
               }`}
             >
-              {project.status}
+              {project.status === 'in_progress' ? 'active' : project.status}
             </span>
           </div>
 
           {/* Employer */}
-          <div className="mb-4 flex items-center gap-2 text-sm text-muted">
+          <div className="mb-6 flex items-center gap-2 text-[15px] text-muted">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -43,10 +41,10 @@ export default function ProjectCard({ project }) {
 
           {/* Footer */}
           <div className="flex items-center justify-between border-t border-border pt-4">
-            <div className="text-sm text-muted">
+            <div className="text-[15px] text-muted">
               <span className="text-foreground font-semibold">${(project.budget || 0).toLocaleString()}</span> budget
             </div>
-            <div className="flex items-center gap-1 text-sm text-muted">
+            <div className="flex items-center gap-1.5 text-[15px] text-muted">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"

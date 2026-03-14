@@ -29,64 +29,64 @@ export default function WalletCard({ walletData }) {
 
   if (!walletData) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <p className="text-muted">Loading wallet data…</p>
+      <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+        <p className="text-[15px] font-medium text-muted">Loading wallet data…</p>
       </div>
     );
   }
 
   if (isEmployer) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-8">
+      <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
         <h2 className="mb-6 text-xl font-semibold text-foreground">Employer Wallet</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {/* Balance */}
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted">Balance</div>
-            <div className="mt-2 text-3xl font-black text-foreground">
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+            <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Balance</div>
+            <div className="mt-2 text-4xl font-black text-foreground tracking-tight">
               ${(walletData.balance || 0).toLocaleString()}
             </div>
           </div>
 
           {/* Escrow Locked */}
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted">Escrow Locked</div>
-            <div className="mt-2 text-3xl font-black text-warning">
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+            <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Escrow Locked</div>
+            <div className="mt-2 text-4xl font-black text-warning tracking-tight">
               ${(walletData.escrowLocked || 0).toLocaleString()}
             </div>
           </div>
 
           {/* Available */}
-          <div className="rounded-xl border border-border bg-surface p-5">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted">Available</div>
-            <div className="mt-2 text-3xl font-black text-success">
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+            <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Available</div>
+            <div className="mt-2 text-4xl font-black text-success tracking-tight">
               ${((walletData.balance || 0) - (walletData.escrowLocked || 0)).toLocaleString()}
             </div>
           </div>
         </div>
 
         {showDeposit ? (
-          <form onSubmit={handleDeposit} className="mt-6 flex items-center gap-3">
+          <form onSubmit={handleDeposit} className="mt-8 flex items-center gap-4">
             <input
               type="number"
               min="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Amount to deposit"
-              className="rounded-lg border border-border bg-background px-4 py-2 w-48 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+              className="rounded-[10px] border border-border bg-background px-4 py-2.5 w-64 text-[15px] font-medium focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               required
             />
             <button
               type="submit"
               disabled={depositing}
-              className="rounded-lg bg-success px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[10px] bg-success px-[18px] py-[10px] text-[15px] font-semibold text-white transition-all hover:bg-[#1DAE50] disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_4px_14px_rgba(34,197,94,0.3)]"
             >
               {depositing ? "Processing..." : "Confirm"}
             </button>
             <button
               type="button"
               onClick={() => setShowDeposit(false)}
-              className="rounded-lg px-4 py-2.5 text-sm font-semibold text-muted hover:text-foreground"
+              className="rounded-[10px] px-4 py-[10px] text-[15px] font-semibold text-muted hover:text-foreground transition-colors"
             >
               Cancel
             </button>
@@ -94,7 +94,7 @@ export default function WalletCard({ walletData }) {
         ) : (
           <button 
             onClick={() => setShowDeposit(true)}
-            className="mt-6 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25"
+            className="mt-8 rounded-[10px] bg-primary px-[18px] py-[10px] text-[15px] font-semibold text-white transition-all duration-200 hover:bg-primary-hover hover:shadow-[0_4px_14px_rgba(79,110,247,0.3)]"
           >
             Deposit Funds
           </button>
@@ -105,29 +105,29 @@ export default function WalletCard({ walletData }) {
 
   // Freelancer wallet
   return (
-    <div className="rounded-2xl border border-border bg-card p-8">
+    <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
       <h2 className="mb-6 text-xl font-semibold text-foreground">Freelancer Wallet</h2>
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Total Earnings */}
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted">Total Earnings</div>
-          <div className="mt-2 text-3xl font-black text-success">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Total Earnings</div>
+          <div className="mt-2 text-4xl font-black text-success tracking-tight">
             ${(walletData.earnings || 0).toLocaleString()}
           </div>
         </div>
 
         {/* Pending */}
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted">Pending Payments</div>
-          <div className="mt-2 text-3xl font-black text-warning">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Pending Payments</div>
+          <div className="mt-2 text-4xl font-black text-warning tracking-tight">
             ${(walletData.pendingPayments || 0).toLocaleString()}
           </div>
         </div>
 
         {/* Withdrawn */}
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted">Withdrawn</div>
-          <div className="mt-2 text-3xl font-black text-foreground">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <div className="text-[13px] font-semibold uppercase tracking-wider text-muted">Withdrawn</div>
+          <div className="mt-2 text-4xl font-black text-foreground tracking-tight">
             ${(walletData.withdrawn || 0).toLocaleString()}
           </div>
         </div>

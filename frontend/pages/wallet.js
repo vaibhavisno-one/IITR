@@ -29,10 +29,10 @@ function WalletPage() {
         <meta name="description" content="Manage your wallet, escrow, and payment history on GigChain." />
       </Head>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
-          <p className="mt-2 text-muted">
+      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+        <div className="mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Wallet</h1>
+          <p className="mt-3 text-lg text-muted">
             {isEmployer
               ? "Manage your funds, escrow, and project payments."
               : "Track your earnings, pending payouts, and payment history."}
@@ -40,7 +40,7 @@ function WalletPage() {
         </div>
 
         {error && (
-          <div className="mb-8 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-400">
+          <div className="mb-8 rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-[15px] font-medium text-red-500">
             {error}
           </div>
         )}
@@ -51,11 +51,11 @@ function WalletPage() {
             <div className="animate-pulse rounded-2xl bg-surface h-64" />
           </div>
         ) : (
-          <div className="space-y-10">
+          <div className="space-y-12">
             <WalletCard walletData={walletData} />
 
             <div>
-              <h2 className="mb-5 text-xl font-semibold">Payment History</h2>
+              <h2 className="mb-6 text-2xl font-semibold">Payment History</h2>
               <PaymentHistory payments={transactions} />
             </div>
           </div>
